@@ -2,9 +2,9 @@
 
 namespace App\Repositories;
 
-use App\Models\SiteAddress;
+use Illuminate\Database\Eloquent\Model;
 
 interface ISiteAddressRepository
 {
-    public function store(array $data): SiteAddress;
+    public function store(array $data): Model;
 }

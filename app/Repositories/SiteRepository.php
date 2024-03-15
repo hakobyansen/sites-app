@@ -2,19 +2,29 @@
 
 namespace App\Repositories;
 
-use App\Models\Site;
+use Illuminate\Database\Eloquent\Model;
 
 class SiteRepository implements ISiteRepository
 {
-    private Site $model;
+    private Model $model;
 
-    public function __construct(Site $site)
+    public function __construct(Model $site)
     {
         $this->model = $site;
     }
 
-    public function store(array $data): Site
+    public function store(array $data): Model
     {
-        return $this->model->create($data);
+        return $this->model
+            ->with('siteAddress')
+            ->create($data)
+            ->first();
+    }
+
+    public function getByID(int $siteID): Model
+    {
+        return $this->model
+            ->where('id', $siteID)
+            ->first();
     }
 }

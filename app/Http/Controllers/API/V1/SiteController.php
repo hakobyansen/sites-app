@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ShowSiteRequest;
 use App\Http\Requests\StoreSiteRequest;
 use App\Repositories\ISiteAddressRepository;
 use App\Repositories\ISiteRepository;
@@ -47,12 +48,13 @@ class SiteController extends Controller
 
     public function show(int $siteID)
     {
+        Log::info('Getting site by type');
 
-    }
+        $site = $this->siteRepository->getByID($siteID);
 
-    public function findByType()
-    {
+        $site->load('siteAddress');
 
+        return response(content: $site);
     }
 
     public function update()

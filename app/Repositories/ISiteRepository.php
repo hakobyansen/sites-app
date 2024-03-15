@@ -2,9 +2,11 @@
 
 namespace App\Repositories;
 
-use App\Models\Site;
+use Illuminate\Database\Eloquent\Model;
 
 interface ISiteRepository
 {
-    public function store(array $data): Site;
+    public function store(array $data): Model;
+
+    public function getById(int $siteID): Model;
 }
