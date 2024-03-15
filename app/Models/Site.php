@@ -20,10 +20,10 @@ class Site extends Model
     ];
 
     /**
-     * @return BelongsTo
+     * @return HasOne
      */
-    public function siteAddress(): BelongsTo
+    public function siteAddress(): HasOne
     {
-        return $this->belongsTo(SiteAddress::class);
+        return $this->hasOne(SiteAddress::class);
     }
 }

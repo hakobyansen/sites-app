@@ -17,7 +17,7 @@ class SiteAddress extends Model
         'city',
         'state',
         'zip',
-        'country'
+        'country',
     ];
 
     public function site(): BelongsTo
