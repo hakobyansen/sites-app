@@ -16,15 +16,28 @@ class SiteRepository implements ISiteRepository
     public function store(array $data): Model
     {
         return $this->model
+            ->newQuery()
             ->with('siteAddress')
             ->create($data)
             ->first();
     }
 
-    public function getByID(int $siteID): Model
+    public function update(int $siteID, array $data): Model
+    {
+          $this->model
+              ->newQuery()
+              ->where('id', $siteID)
+              ->update($data);
+
+          return $this->getById($siteID);
+    }
+
+    public function getByID(int $siteID): ?Model
     {
         return $this->model
+            ->newQuery()
             ->where('id', $siteID)
+            ->with('siteAddress')
             ->first();
     }
 }
