@@ -6,6 +6,7 @@ use App\Helpers\SiteHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSiteRequest;
 use App\Repositories\ISiteRepository;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class SiteController extends Controller
@@ -56,6 +57,19 @@ class SiteController extends Controller
         );
     }
 
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function findByType(Request $request)
+    {
+        $type = $request->input('type');
+
+        $sites = $this->siteRepository->findByType($type);
+
+        return response()->json(data: $sites);
+    }
+
     public function update(StoreSiteRequest $request)
     {
         Log::info('Updating existing site');
@@ -85,6 +99,13 @@ class SiteController extends Controller
     public function destroy(int $siteID)
     {
         Log::info("Deleting site {$siteID}");
+
+        if(!$this->siteRepository->getById($siteID)) {
+            return response(
+                content: 'Site is not found',
+                status: 404
+            );
+        }
 
         $this->siteRepository->deleteByID($siteID);
 

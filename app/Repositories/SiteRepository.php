@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Site;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
 class SiteRepository implements ISiteRepository
@@ -39,6 +40,15 @@ class SiteRepository implements ISiteRepository
             ->with('siteAddress')
             ->where('id', $siteID)
             ->first();
+    }
+
+    public function findByType(string $type): Collection
+    {
+        return $this->model
+            ->newQuery()
+            ->with('siteAddress')
+            ->where('type', 'like', "%$type%")
+            ->get();
     }
 
     public function deleteByID(int $siteID): int
