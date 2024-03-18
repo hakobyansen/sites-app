@@ -2,13 +2,14 @@
 
 namespace App\Repositories;
 
+use App\Models\Site;
 use Illuminate\Database\Eloquent\Model;
 
 class SiteRepository implements ISiteRepository
 {
-    private Model $model;
+    private Site $model;
 
-    public function __construct(Model $site)
+    public function __construct(Site $site)
     {
         $this->model = $site;
     }
@@ -18,8 +19,7 @@ class SiteRepository implements ISiteRepository
         return $this->model
             ->newQuery()
             ->with('siteAddress')
-            ->create($data)
-            ->first();
+            ->create($data);
     }
 
     public function update(int $siteID, array $data): Model
@@ -36,8 +36,16 @@ class SiteRepository implements ISiteRepository
     {
         return $this->model
             ->newQuery()
-            ->where('id', $siteID)
             ->with('siteAddress')
+            ->where('id', $siteID)
             ->first();
+    }
+
+    public function deleteByID(int $siteID): int
+    {
+        return $this->model
+            ->newQuery()
+            ->where('id', $siteID)
+            ->delete();
     }
 }

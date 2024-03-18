@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers\API\V1;
 
+use App\Helpers\SiteHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ShowSiteRequest;
 use App\Http\Requests\StoreSiteRequest;
-use App\Repositories\ISiteAddressRepository;
 use App\Repositories\ISiteRepository;
 use Illuminate\Support\Facades\Log;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class SiteController extends Controller
 {
+    /**
+     * @param ISiteRepository $siteRepository
+     */
     public function __construct(
         private readonly ISiteRepository $siteRepository,
-        private readonly ISiteAddressRepository $siteAddressRepository
     )
     {
     }
@@ -23,26 +23,14 @@ class SiteController extends Controller
     {
         Log::info('Creating new site');
 
+        $siteHelper = app(SiteHelper::class);
+
         $data = $request->toArray();
 
-        $site = $this->siteRepository->store([
-            'name' => $data['name'],
-            'type' => $data['type'],
-        ]);
-
-        $this->siteAddressRepository->store([
-            'site_id' => $site->id,
-            'street' => $data['address']['street'],
-            'city' => $data['address']['city'],
-            'state' => $data['address']['state'],
-            'zip' => $data['address']['zip'],
-            'country' => $data['address']['country'],
-        ]);
-
-        $site->load('siteAddress');
+        $site = $siteHelper->storeDataInDB($data);
 
         return response(
-            content: $site->toArray(),
+            content: $siteHelper->mapResponse($site),
             status: 201,
         );
     }
@@ -51,19 +39,28 @@ class SiteController extends Controller
     {
         Log::info('Getting site by type');
 
+        $siteHelper = app(SiteHelper::class);
+
         $site = $this->siteRepository
             ->getByID($siteID);
 
         if(!$site) {
-            throw new NotFoundHttpException();
+            return response(
+                content: 'Site is not found',
+                status: 404
+            );
         }
 
-        return response(content: $site);
+        return response(
+            content: $siteHelper->mapResponse($site)
+        );
     }
 
     public function update(StoreSiteRequest $request)
     {
         Log::info('Updating existing site');
+
+        $siteHelper = app(SiteHelper::class);
 
         $data = $request->toArray();
 
@@ -71,33 +68,31 @@ class SiteController extends Controller
             ->getById($data['site_id']);
 
         if(!$site) {
-            throw new NotFoundHttpException();
+            return response(
+                content: 'Site is not found',
+                status: 404
+            );
         }
 
-        $this->siteRepository-x>update(
-            siteID: $site->id,
-            data: [
-                'name' => $data['name'],
-                'type' => $data['type'],
-            ]
-        );
-
-        $this->siteAddressRepository->store([
-            'street' => $data['address']['street'],
-            'city' => $data['address']['city'],
-            'state' => $data['address']['state'],
-            'zip' => $data['address']['zip'],
-            'country' => $data['address']['country'],
-        ]);
+        $site = app(SiteHelper::class)
+            ->updateDataInDB($data);
 
         return response(
-            content: $site->toArray(),
-            status: 200,
+            content: $siteHelper->mapResponse($site),
         );
     }
 
     public function destroy(int $siteID)
     {
+        Log::info("Deleting site {$siteID}");
 
+        $this->siteRepository->deleteByID($siteID);
+
+        app(SiteHelper::class)
+            ->deleteFromDB($siteID);
+
+        return response(
+            content: 'Site is deleted'
+        );
     }
 }

@@ -13,13 +13,17 @@ return new class extends Migration
     {
         Schema::create('site_addresses', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('site_id');
             $table->string('street');
             $table->string('city');
             $table->string('state');
             $table->string('zip');
             $table->string('country');
             $table->timestamps();
+
+            $table->foreignId('site_id')
+                ->nullable()
+                ->constrained()
+                ->cascadeOnDelete();
         });
     }
 

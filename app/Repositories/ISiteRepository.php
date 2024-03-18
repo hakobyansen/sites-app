@@ -11,4 +11,6 @@ interface ISiteRepository
     public function getById(int $siteID): ?Model;
 
     public function update(int $siteID, array $data): Model;
+
+    public function deleteByID(int $siteID): int;
 }
