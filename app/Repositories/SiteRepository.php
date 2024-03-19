@@ -51,6 +51,18 @@ class SiteRepository implements ISiteRepository
             ->get();
     }
 
+    /**
+     * @param int $siteID
+     * @return bool
+     */
+    public function existsByID(int $siteID): bool
+    {
+        return $this->model
+            ->newQuery()
+            ->where('id', $siteID)
+            ->exists();
+    }
+
     public function deleteByID(int $siteID): int
     {
         return $this->model

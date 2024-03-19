@@ -5,115 +5,126 @@ namespace App\Http\Controllers\API\V1;
 use App\Helpers\SiteHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSiteRequest;
-use App\Repositories\ISiteRepository;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class SiteController extends Controller
 {
     /**
-     * @param ISiteRepository $siteRepository
+     * @param SiteHelper $siteHelper
      */
     public function __construct(
-        private readonly ISiteRepository $siteRepository,
+        private readonly SiteHelper $siteHelper,
     )
     {
     }
 
-    public function store(StoreSiteRequest $request)
+    /**
+     * @param StoreSiteRequest $request
+     * @return JsonResponse
+     */
+    public function store(StoreSiteRequest $request): JsonResponse
     {
         Log::info('Creating new site');
 
-        $siteHelper = app(SiteHelper::class);
-
         $data = $request->toArray();
 
-        $site = $siteHelper->storeDataInDB($data);
+        $site = $this->siteHelper->storeDataInDB($data);
 
-        return response(
-            content: $siteHelper->mapResponse($site),
-            status: 201,
+        return response()->json(
+            data: $this->siteHelper->mapResponse($site),
+            status: 201
         );
     }
 
-    public function show(int $siteID)
+    /**
+     * @param int $siteID
+     * @return JsonResponse
+     */
+    public function show(int $siteID): JsonResponse
     {
         Log::info('Getting site by type');
 
-        $siteHelper = app(SiteHelper::class);
-
-        $site = $this->siteRepository
-            ->getByID($siteID);
-
-        if(!$site) {
-            return response(
-                content: 'Site is not found',
+        if(!$this->siteHelper->siteExists($siteID)) {
+            return response()->json(
+                data: [
+                    'message' => 'Site is not found'
+                ],
                 status: 404
             );
         }
 
-        return response(
-            content: $siteHelper->mapResponse($site)
+        return response()->json(
+            $this->siteHelper->mapResponse(
+                $this->siteHelper->getByID($siteID)
+            )
         );
     }
 
     /**
      * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function findByType(Request $request)
+    public function findByType(Request $request): JsonResponse
     {
         $type = $request->input('type');
 
-        $sites = $this->siteRepository->findByType($type);
+        $sites = $this->siteHelper->findByType($type);
 
         return response()->json(data: $sites);
     }
 
-    public function update(StoreSiteRequest $request)
+    /**
+     * @param StoreSiteRequest $request
+     * @param int $siteID
+     * @return JsonResponse
+     */
+    public function update(StoreSiteRequest $request, int $siteID): JsonResponse
     {
         Log::info('Updating existing site');
 
-        $siteHelper = app(SiteHelper::class);
-
         $data = $request->toArray();
 
-        $site = $this->siteRepository
-            ->getById($data['site_id']);
-
-        if(!$site) {
-            return response(
-                content: 'Site is not found',
+        if(!$this->siteHelper->siteExists($siteID)) {
+            return response()->json(
+                data: [
+                    'message' => 'Site is not found'
+                ],
                 status: 404
             );
         }
 
-        $site = app(SiteHelper::class)
-            ->updateDataInDB($data);
+        $site =$this->siteHelper->updateDataInDB($siteID, $data);
 
-        return response(
-            content: $siteHelper->mapResponse($site),
+        return response()->json(
+            $this->siteHelper->mapResponse($site)
         );
     }
 
-    public function destroy(int $siteID)
+    /**
+     * @param int $siteID
+     * @return JsonResponse
+     */
+    public function destroy(int $siteID): JsonResponse
     {
         Log::info("Deleting site {$siteID}");
 
-        if(!$this->siteRepository->getById($siteID)) {
-            return response(
-                content: 'Site is not found',
+        if(!$this->siteHelper->siteExists($siteID)) {
+            return response()->json(
+                data: [
+                    'message' => 'Site is not found'
+                ],
                 status: 404
             );
         }
 
-        $this->siteRepository->deleteByID($siteID);
+        $this->siteHelper->deleteFromDB($siteID);
 
-        app(SiteHelper::class)
-            ->deleteFromDB($siteID);
-
-        return response(
-            content: 'Site is deleted'
+        return response()->json(
+            data: [
+                'message' => 'Site is deleted'
+            ],
         );
     }
 }
